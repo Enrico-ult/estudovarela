@@ -1,0 +1,447 @@
+================================================================
+  GUIA COMPLETO — SISTEMA TEMPLATE NODE.JS + MONGODB
+  Para adaptar para qualquer tema
+================================================================
+
+
+================================================================
+  1. ESTRUTURA DE PASTAS E ARQUIVOS
+================================================================
+
+Seu projeto deve estar organizado exatamente assim:
+
+  meu-projeto/
+  │
+  ├── server.js               ← ponto de entrada, sobe o servidor
+  ├── db.js                   ← conexão com o MongoDB
+  ├── package.json            ← lista de dependências
+  │
+  ├── routes/
+  │   ├── auth.js             ← login, cadastro, logout (não mexer)
+  │   └── itens.js            ← CRUD da sua entidade (renomeie este arquivo)
+  │
+  ├── views/
+  │   ├── projects.ejs        ← página de projetos com link para o sistema
+  │   ├── login.ejs           ← tela de login
+  │   ├── cadastro.ejs        ← tela de cadastro de usuário
+  │   ├── itens-lista.ejs     ← listagem pública da sua entidade
+  │   └── itens-gerencia.ejs  ← painel de gerência com CRUD completo
+  │
+  └── public/
+      └── style.css           ← todo o CSS do sistema
+
+IMPORTANTE:
+  - A pasta node_modules/ é criada automaticamente pelo npm install.
+    Nunca envie ela para o GitHub — adicione ao .gitignore.
+  - Os arquivos dentro de views/ têm extensão .ejs, não .html.
+  - O arquivo db.js fica na raiz, junto com o server.js.
+
+
+================================================================
+  2. INSTALAÇÃO — PASSO A PASSO
+================================================================
+
+Passo 1 — Instalar o Node.js
+  Acesse: https://nodejs.org
+  Baixe a versão LTS e instale normalmente.
+  Para verificar se instalou corretamente, abra o terminal e rode:
+
+    node -v
+    npm -v
+
+  Ambos devem mostrar um número de versão.
+
+---
+
+Passo 2 — Instalar o MongoDB
+  OPÇÃO A — MongoDB local (para desenvolvimento):
+    Acesse: https://www.mongodb.com/try/download/community
+    Baixe e instale o MongoDB Community Server.
+    Após instalar, o MongoDB roda automaticamente em:
+      mongodb://localhost:27017
+
+  OPÇÃO B — MongoDB Atlas (nuvem, gratuito):
+    1. Acesse: https://www.mongodb.com/atlas
+    2. Crie uma conta gratuita
+    3. Crie um cluster (escolha a opção Free/M0)
+    4. Crie um usuário de banco de dados (Database Access)
+    5. Libere seu IP (Network Access → Add IP Address → Allow from Anywhere)
+    6. Clique em Connect → Drivers → copie a URI que parece com:
+         mongodb+srv://usuario:senha@cluster.mongodb.net/
+
+---
+
+Passo 3 — Baixar e preparar o projeto
+  Extraia o ZIP do sistema-template em uma pasta.
+  Abra o terminal dentro dessa pasta e rode:
+
+    npm install
+
+  Isso instala todas as dependências listadas no package.json.
+  Você verá a pasta node_modules/ ser criada.
+
+---
+
+Passo 4 — Configurar a conexão com o banco
+  Abra o arquivo db.js e localize esta linha:
+
+    const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017';
+
+  Se estiver usando MongoDB LOCAL, não precisa mudar nada.
+
+  Se estiver usando MongoDB ATLAS, cole sua URI assim:
+
+    const MONGO_URI = process.env.MONGO_URI || 'mongodb+srv://usuario:senha@cluster.mongodb.net/';
+
+  Também mude o nome do banco de dados logo abaixo:
+
+    const DB_NAME = 'meu_sistema_db';  ← troque pelo nome que quiser
+
+  O MongoDB cria o banco automaticamente na primeira vez que
+  você inserir um dado. Não precisa criar manualmente.
+
+---
+
+Passo 5 — Subir o servidor
+  No terminal, dentro da pasta do projeto, rode:
+
+    node server.js
+
+  Se tudo der certo, você verá:
+    ✅ MongoDB conectado!
+    🚀 Servidor em http://localhost:80
+
+  ATENÇÃO — Porta 80:
+    No Linux e Mac, a porta 80 exige permissão de administrador.
+    Rode com:
+      sudo node server.js
+
+    No Windows, abra o terminal como Administrador e rode:
+      node server.js
+
+    Alternativa: mude a porta para 3000 no server.js para
+    evitar a necessidade de sudo/administrador:
+      const PORT = 3000;
+    E acesse em: http://localhost:3000
+
+---
+
+Passo 6 — Acessar o sistema
+  Com o servidor rodando, abra o navegador e acesse:
+    http://localhost
+
+  A página inicial redireciona para /projects automaticamente.
+  De lá você pode navegar para o sistema e criar sua conta.
+
+
+================================================================
+  3. COMO ADAPTAR O TEMPLATE PARA QUALQUER TEMA
+================================================================
+
+O template usa a palavra "itens" como entidade genérica.
+Você vai substituir "itens" pelo nome da sua entidade em todo
+o projeto. Exemplos:
+
+  Hotel     → quartos
+  Loja      → produtos
+  Biblioteca → livros
+  Clínica   → pacientes
+  Oficina   → veiculos
+
+Siga os passos abaixo na ordem:
+
+---
+
+PASSO A — Renomear os arquivos (opcional mas recomendado)
+
+  routes/itens.js         → routes/quartos.js
+  views/itens-lista.ejs   → views/quartos-lista.ejs
+  views/itens-gerencia.ejs → views/quartos-gerencia.ejs
+
+---
+
+PASSO B — Editar o db.js
+
+  Mude o nome do banco:
+    const DB_NAME = 'hotel_db';
+
+  Renomeie a função getItens() e a coleção:
+    function getQuartos() {
+      return db.collection('quartos');
+    }
+
+  Atualize o module.exports no final:
+    module.exports = { conectar, getUsuarios, getQuartos, ObjectId };
+
+---
+
+PASSO C — Editar o server.js
+
+  Mude o require e o app.use:
+    const quartosRoutes = require('./routes/quartos');
+    app.use('/quartos', quartosRoutes);
+
+  Mude o redirect no auth.js (linha do login bem-sucedido):
+    res.redirect('/quartos');
+
+---
+
+PASSO D — Editar o routes/itens.js (ou o nome que você deu)
+
+  1. Troque todos os getItens() por getQuartos() (ou sua função)
+  2. Troque todos os res.redirect('/itens/...') pela sua rota
+  3. Em cada rota, ajuste os campos do req.body:
+
+     ANTES (template genérico):
+       const { nome, descricao, qtde_disponivel } = req.body;
+
+     DEPOIS (exemplo hotel):
+       const { numero, tipo, preco, capacidade, qtde_disponivel } = req.body;
+
+  4. No insertOne e updateOne, salve os mesmos campos:
+
+     ANTES:
+       await getItens().insertOne({ nome, descricao, qtde_disponivel, criadoEm: new Date() });
+
+     DEPOIS:
+       await getQuartos().insertOne({ numero, tipo, preco: Number(preco),
+         capacidade: Number(capacidade), qtde_disponivel: Number(qtde_disponivel),
+         criadoEm: new Date() });
+
+  REGRA: campos de texto (String) → salve direto
+         campos numéricos (Number) → envolva em Number()
+
+  5. Renomeie a rota de ação especial:
+     /:id/usar  →  /:id/vender  ou  /:id/reservar  ou  /:id/emprestar
+
+---
+
+PASSO E — Editar as views EJS
+
+  Todos os lugares para mudar estão marcados com <!-- ✏ --> nos arquivos.
+
+  Em TODOS os arquivos .ejs, troque:
+    - "Meu Sistema"     → nome do seu sistema
+    - "Itens" / "itens" → nome da sua entidade
+    - href="/itens"     → href="/quartos" (ou sua rota)
+    - emoji 📦          → emoji do seu tema (🏨 🚗 📚 🏥 🛒)
+
+  No arquivo itens-lista.ejs:
+    Troque os <th> e os <td> pelos campos da sua entidade:
+
+      ANTES:
+        <th>Nome</th>
+        <th>Descrição</th>
+        <td><%= item.nome %></td>
+        <td><%= item.descricao %></td>
+
+      DEPOIS (hotel):
+        <th>Número</th>
+        <th>Tipo</th>
+        <th>Diária</th>
+        <td><%= item.numero %></td>
+        <td><%= item.tipo %></td>
+        <td>R$ <%= item.preco.toFixed(2) %></td>
+
+  No arquivo itens-gerencia.ejs:
+    1. Troque os <th> e <td> da tabela (mesmo que acima)
+    2. No MODAL de cadastro, troque os inputs:
+
+       ANTES:
+         <input type="text"   name="nome"      ...>
+         <input type="text"   name="descricao" ...>
+         <input type="number" name="qtde_disponivel" ...>
+
+       DEPOIS (hotel):
+         <input type="text"   name="numero"    ...>
+         <input type="text"   name="tipo"      ...>
+         <input type="number" name="preco"     ...>
+         <input type="number" name="capacidade" ...>
+         <input type="number" name="qtde_disponivel" ...>
+
+    3. No MODAL de edição, faça o mesmo — mesmos campos,
+       com id="edit-NOMEDOCAMPO":
+         <input type="text" name="numero" id="edit-numero" ...>
+
+    4. Na função abrirEdicao() no JavaScript, passe e atribua
+       os mesmos campos:
+
+       ANTES:
+         function abrirEdicao(id, nome, descricao, qtde) {
+           document.getElementById('edit-nome').value      = nome;
+           document.getElementById('edit-descricao').value = descricao;
+           document.getElementById('edit-qtde').value      = qtde;
+         }
+
+       DEPOIS (hotel):
+         function abrirEdicao(id, numero, tipo, preco, capacidade, qtde) {
+           document.getElementById('edit-numero').value     = numero;
+           document.getElementById('edit-tipo').value       = tipo;
+           document.getElementById('edit-preco').value      = preco;
+           document.getElementById('edit-capacidade').value = capacidade;
+           document.getElementById('edit-qtde').value       = qtde;
+         }
+
+    5. No botão Editar da tabela, passe os mesmos argumentos
+       na mesma ordem:
+
+       ANTES:
+         onclick="abrirEdicao('<%= item._id %>', '<%= item.nome %>',
+           '<%= item.descricao %>', '<%= item.qtde_disponivel %>')"
+
+       DEPOIS (hotel):
+         onclick="abrirEdicao('<%= item._id %>', '<%= item.numero %>',
+           '<%= item.tipo %>', '<%= item.preco %>',
+           '<%= item.capacidade %>', '<%= item.qtde_disponivel %>')"
+
+---
+
+PASSO F — Editar o CSS (style.css)
+
+  Abra o arquivo public/style.css.
+  No topo, dentro do bloco :root { ... }, estão as variáveis de cor.
+  Troque apenas os valores hexadecimais (#...) para mudar o tema.
+
+  PALETAS PRONTAS:
+
+  Escuro Neutro (padrão):
+    --bg: #0f1117  --surface: #171b26  --card: #1e2333
+    --border: #2c3347  --accent: #4f6ef7
+    --text: #e8ecf4  --muted: #6b7a99
+
+  Vermelho / Esportivo:
+    --bg: #0d0f14  --surface: #161b25  --card: #1e2535
+    --border: #2a3348  --accent: #e8372a
+    --text: #e8ecf4  --muted: #6b7a99
+
+  Dourado / Luxo / Hotel:
+    --bg: #0e0c0a  --surface: #161210  --card: #1d1916
+    --border: #2e2820  --accent: #c9a84c
+    --text: #f0ece4  --muted: #7a6e5f
+
+  Verde / Saúde / Clínica:
+    --bg: #0a0f0d  --surface: #121a16  --card: #18241e
+    --border: #243328  --accent: #2ecc71
+    --text: #e4f0ea  --muted: #5a7a65
+
+  Azul / Tecnologia:
+    --bg: #060d1f  --surface: #0d1730  --card: #131f3d
+    --border: #1e2f57  --accent: #3b82f6
+    --text: #dde8ff  --muted: #5a7aaa
+
+  Roxo / Criativo:
+    --bg: #0d0b14  --surface: #15111f  --card: #1c1729
+    --border: #2c2540  --accent: #8b5cf6
+    --text: #eae6f5  --muted: #7060a0
+
+  Claro / Corporativo:
+    --bg: #f5f7fa  --surface: #ffffff  --card: #ffffff
+    --border: #e2e8f0  --accent: #3b82f6
+    --text: #1a202c  --muted: #718096
+    (se usar tema claro, mude também o background dos inputs:
+     input, select { background: #f8fafc; color: #1a202c; })
+
+  Para trocar as fontes, acesse fonts.google.com, escolha duas
+  fontes e substitua o link @import no topo do CSS.
+  Depois atualize as variáveis:
+    --font-titulo: 'NomeDaFonte', sans-serif;
+    --font-corpo:  'NomeDaFonte', sans-serif;
+
+  Sugestões por tema:
+    Luxo/Hotel    → Playfair Display (título) + Jost (corpo)
+    Tech/SaaS     → Space Grotesk (título) + Inter (corpo)
+    Saúde/Clínica → Nunito (título) + DM Sans (corpo)
+    Educação      → Merriweather (título) + Lato (corpo)
+    Industrial    → Bebas Neue (título) + Barlow (corpo)
+
+
+================================================================
+  4. REFERÊNCIA RÁPIDA — OPERAÇÕES DO MONGODB SEM MONGOOSE
+================================================================
+
+Buscar todos os documentos:
+  const lista = await getItens().find().sort({ campo: 1 }).toArray();
+  (1 = crescente A→Z, -1 = decrescente Z→A)
+
+Buscar um documento por filtro:
+  const item = await getItens().findOne({ login: 'joao' });
+
+Buscar por ID:
+  const item = await getItens().findOne({ _id: new ObjectId(id) });
+
+Inserir um novo documento:
+  await getItens().insertOne({ nome: 'Teste', criadoEm: new Date() });
+
+Atualizar um documento:
+  await getItens().updateOne(
+    { _id: new ObjectId(id) },
+    { $set: { nome: 'Novo nome', atualizadoEm: new Date() } }
+  );
+
+Decrementar um campo numérico:
+  await getItens().updateOne(
+    { _id: new ObjectId(id) },
+    { $inc: { qtde_disponivel: -1 } }
+  );
+
+Deletar um documento:
+  await getItens().deleteOne({ _id: new ObjectId(id) });
+
+ATENÇÃO: IDs no MongoDB são do tipo ObjectId, não string simples.
+Sempre converta antes de buscar:
+  { _id: new ObjectId(req.params.id) }
+
+
+================================================================
+  5. ERROS COMUNS E SOLUÇÕES
+================================================================
+
+Erro: "listen EACCES: permission denied 0.0.0.0:80"
+  Solução: use sudo node server.js (Linux/Mac) ou terminal
+  como Administrador (Windows). Ou mude a porta para 3000.
+
+Erro: "MongoServerError: connect ECONNREFUSED"
+  Solução: o MongoDB não está rodando. Inicie o serviço:
+  Linux/Mac: sudo systemctl start mongod
+  Windows:   abra o Services e inicie o MongoDB
+
+Erro: "Cannot find module './routes/itens'"
+  Solução: você renomeou o arquivo de rota mas não atualizou
+  o require no server.js. Verifique se os nomes batem.
+
+Erro: "ReferenceError: getItens is not defined"
+  Solução: você trocou a função no db.js mas esqueceu de
+  atualizar o require e a chamada no arquivo de rotas.
+
+Erro: campos aparecem undefined no banco
+  Solução: o name="" do input no EJS não bate com o nome
+  usado no req.body da rota. Verifique se são idênticos.
+
+Erro: modal de edição abre com campos vazios
+  Solução: os argumentos do onclick no botão Editar devem
+  estar na mesma ordem dos parâmetros da função abrirEdicao()
+  no JavaScript.
+
+
+================================================================
+  6. CHECKLIST FINAL ANTES DE RODAR
+================================================================
+
+  [ ] npm install rodado — pasta node_modules existe
+  [ ] MONGO_URI configurado no db.js
+  [ ] DB_NAME trocado pelo nome do seu banco
+  [ ] getItens() renomeado e coleção atualizada no db.js
+  [ ] module.exports do db.js atualizado com o novo nome
+  [ ] routes/itens.js com os campos corretos no req.body
+  [ ] insertOne e updateOne salvando os mesmos campos
+  [ ] server.js com o require e app.use corretos
+  [ ] auth.js redirecionando para a rota certa após login
+  [ ] Todos os hrefs nos EJS apontando para a rota correta
+  [ ] Tabelas nos EJS com os campos da sua entidade
+  [ ] Modais com os inputs corretos e ids "edit-CAMPO"
+  [ ] Função abrirEdicao() com os parâmetros certos
+  [ ] Botão Editar passando os argumentos na ordem certa
+  [ ] CSS com a paleta de cores do seu tema
+  [ ] Porta 80 → usar sudo ou mudar para 3000
+
+================================================================
